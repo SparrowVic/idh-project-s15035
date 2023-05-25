@@ -1,0 +1,27 @@
+<form [formGroup]="form" class="grid w-96">
+  <mat-form-field
+    class="example-form-field"
+    appearance="outline"
+  >
+    <mat-label>Google Maps API Key</mat-label>
+    <input
+      matInput
+      type="text"
+      [formControlName]=formConfig.googleMapsAPIKey
+    >
+  </mat-form-field>
+
+  <mat-form-field
+    class="example-form-field"
+    appearance="outline"
+  >
+    <mat-label>Number of pages</mat-label>
+    <input
+      matInput
+      type="number"
+      [formControlName]="formConfig.pagesNumber"
+    >
+  </mat-form-field>
+
+  <button (click)="startProcess()" mat-raised-button color="primary">Uruchom proces</button>
+</form>

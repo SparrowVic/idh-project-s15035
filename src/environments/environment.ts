@@ -3,7 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  googleUrl: "https://maps.googleapis.com/maps/api/",
+  proxyUrl: "http://localhost:8080/",
 };
 
 /*
