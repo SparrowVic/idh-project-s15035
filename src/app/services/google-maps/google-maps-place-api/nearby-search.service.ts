@@ -70,7 +70,6 @@ export class GoogleNearbySearchService {
 
   getDrivingAccessibility(lat: number, lng: number): Observable<any> {
     const location = [lat, lng]
-    // const location = ["52.2277982", "21.0044324"]
     const locationParams = location.join(',')
 
     const params: HttpParams = new HttpParams()
@@ -85,7 +84,6 @@ export class GoogleNearbySearchService {
 
   getPublicTransportAccessibility(lat: number, lng: number): Observable<any> {
     const location = [lat, lng]
-    // const location = ["52.2277982", "21.0044324"]
     const locationParams = location.join(',')
 
     const params: HttpParams = new HttpParams()
