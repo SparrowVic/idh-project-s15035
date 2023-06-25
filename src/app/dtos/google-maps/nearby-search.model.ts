@@ -17,11 +17,9 @@ export interface NearbySearchResponse {
   html_attributions: string,
   next_page_token: string,
   results: NearbySearchResults[]
-
 }
 
 export interface NearbySearchResults {
-  "business_status": string,
   "geometry": {
     "location": {
       "lat": number,
@@ -38,29 +36,12 @@ export interface NearbySearchResults {
       }
     }
   },
-  "icon": string,
-  "icon_background_color": string,
-  "icon_mask_base_uri": string,
   "name": string,
   "opening_hours": {
     "open_now": true
   },
-  "photos": [
-    {
-      "height": number,
-      "html_attributions": string[],
-      "photo_reference": string,
-      "width": number
-    }
-  ],
   "place_id": string,
-  "plus_code": {
-    "compound_code": string,
-    "global_code": string
-  },
   "rating": number,
-  "reference": string,
-  "scope": string,
   "types": string[],
   "user_ratings_total": number,
   "vicinity": string

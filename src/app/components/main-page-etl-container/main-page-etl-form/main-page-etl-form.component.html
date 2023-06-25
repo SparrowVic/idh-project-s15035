@@ -23,5 +23,31 @@
     >
   </mat-form-field>
 
-  <button (click)="startProcess()" mat-raised-button color="primary">Uruchom proces</button>
+  <mat-form-field
+    class="example-form-field"
+    appearance="outline"
+  >
+    <mat-label>Driving accessibility radius [m]</mat-label>
+    <input
+      matInput
+      type="number"
+      [formControlName]="formConfig.drivingAccessibilityRadius"
+    >
+  </mat-form-field>
+
+  <mat-form-field
+    class="example-form-field"
+    appearance="outline"
+  >
+    <mat-label>Public transport accessibility radius [m]</mat-label>
+    <input
+      matInput
+      type="number"
+      [formControlName]="formConfig.publicTransportAccessibilityRadius"
+    >
+  </mat-form-field>
+
+  <button  mat-raised-button color="primary" (click)="startProcess()">Uruchom proces</button>
 </form>
+
+<button mat-raised-button color="primary" (click)="getPlaceDetails()">GET PLACE DETAILS</button>
