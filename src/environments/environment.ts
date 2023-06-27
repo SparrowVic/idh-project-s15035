@@ -4,6 +4,7 @@
 
 export const environment = {
   production: false,
+  apiUrl: "https://localhost:7171/api/App/",
   googleUrl: "https://maps.googleapis.com/maps/api/",
   proxyUrl: "http://localhost:8080/",
 };

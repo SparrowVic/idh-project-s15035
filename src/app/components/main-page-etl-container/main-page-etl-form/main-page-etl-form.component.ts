@@ -10,7 +10,15 @@ import {
 } from "../../../services/google-maps/google-maps-place-api/details.service";
 import { GoogleDataService } from "../../../services/google-maps/google-data.service";
 import { forkJoin, map, Observable, of, switchMap, tap } from "rxjs";
-import { GooglePlaceRequest } from "../../../models/google-place.model";
+import {
+  GoogleAccessibilityBody,
+  GoogleCategoryBody,
+  GoogleLocal,
+  GoogleLocalBody, GoogleLocalCategoryBody, GoogleLocationBody,
+  GooglePlaceRequest
+} from "../../../models/google-place.model";
+import { BaseApiService } from "../../../services/api/base-api.service";
+import * as uuid from 'uuid';
 
 @Component({
   selector: 'app-main-page-etl-form',
@@ -28,7 +36,8 @@ export class MainPageEtlFormComponent implements OnInit {
     private readonly _baseService: BaseService,
     private readonly _googleNearbySearchService: GoogleNearbySearchService,
     private readonly _googleDetailsService: GoogleDetailsService,
-    private readonly _googleDataService: GoogleDataService) {
+    private readonly _googleDataService: GoogleDataService,
+    private readonly _baseApiService: BaseApiService) {
   }
 
   ngOnInit(): void {
@@ -90,7 +99,128 @@ export class MainPageEtlFormComponent implements OnInit {
     forkJoin(placeDetailsRequests$)
       .subscribe(resp => {
         this._googleDataService.googlePlacesRequest = resp;
+        this.mapGoolePlacesToPGoogleLocalRequest();
       })
 
+  }
+
+  mapGoolePlacesToPGoogleLocalRequest(): void {
+    const googleLocalRequest: GoogleLocal[] =
+      this._googleDataService.googlePlacesRequest
+        .map(resp => ({
+          placeId: resp.placeId,
+          name: resp.name,
+          rating: resp.rating,
+          reviewCount: resp.userRatingsTotal,
+          wheelchairAccessible: resp.wheelchairAccessibleEntrance,
+          publicTransport: resp.publicTransport,
+          drivingAccess: resp.drivingAccess,
+          types: resp.types,
+
+          //Address
+          formattedAddress: resp.formattedAddress,
+          latitude: resp.geometry.location.lat,
+          longitude: resp.geometry.location.lng,
+          //Like address components
+          postalCode: resp.addressComponents.find(x => x.types.includes("postal_code"))?.long_name, //google response key in types array: postal_code
+          country: resp.addressComponents.find(x => x.types.includes("country"))?.long_name, //google response key in types array: country
+          city: resp.addressComponents.find(x => x.types.includes("locality"))?.long_name, //google response key in types array: locality
+          streetNumber: resp.addressComponents.find(x => x.types.includes("street_number"))?.long_name, //google response key in types array: street_number
+          subpremise: resp.addressComponents.find(x => x.types.includes("subpremise"))?.long_name //google response key in types array: subpremise
+        }));
+
+    this._googleDataService.googleLocalRequest = googleLocalRequest;
+    this.mapGoogleLocalsToApiRequestBodies();
+  }
+
+  mapGoogleLocalsToApiRequestBodies(): void {
+    const categories: GoogleCategoryBody[] = [];
+    const localCategories: GoogleLocalCategoryBody[] = [];
+    const locations: GoogleLocationBody[] = [];
+    const accessibilities: GoogleAccessibilityBody[] = [];
+    const locals: GoogleLocalBody[] = [];
+    const existingCategoryNames: Set<string> = new Set();
+    const uuid = require('uuid');
+    const categoryIdsByName: Map<string, string> = new Map();
+
+    this._googleDataService.googleLocalRequest.forEach(googleLocal => {
+      const locationId = uuid.v4();
+      const accessibilityId = uuid.v4();
+      const localId = uuid.v4();
+
+      const accessibility: GoogleAccessibilityBody = {
+        id: accessibilityId,
+        publicTransport: googleLocal.publicTransport,
+        drivingAccess: googleLocal.drivingAccess
+      };
+      accessibilities.push(accessibility);
+
+      const location: GoogleLocationBody = {
+        id: locationId,
+        formattedAddress: googleLocal.formattedAddress,
+        latitude: googleLocal.latitude,
+        longitude: googleLocal.longitude,
+        postalCode: googleLocal.postalCode || '',
+        country: googleLocal.country || '',
+        city: googleLocal.city || '',
+        streetNumber: googleLocal.streetNumber || '',
+        subpremise: googleLocal.subpremise || ''
+      };
+      locations.push(location);
+
+      const local: GoogleLocalBody = {
+        id: localId,
+        placeId: googleLocal.placeId,
+        locationId: locationId,
+        accessibilityId: accessibilityId,
+        name: googleLocal.name,
+        types: googleLocal.types,
+        rating: googleLocal.rating,
+        reviewCount: googleLocal.reviewCount,
+        wheelchairAccessible: googleLocal.wheelchairAccessible
+      };
+      locals.push(local);
+
+      googleLocal.types.forEach(type => {
+        let categoryId: string;
+
+        if (categoryIdsByName.has(type)) {
+          categoryId = categoryIdsByName.get(type) as string;
+        } else {
+          categoryId = uuid.v4();
+          const category: GoogleCategoryBody = {
+            id: categoryId,
+            name: type
+          };
+          categories.push(category);
+          categoryIdsByName.set(type, categoryId);
+        }
+
+        const localCategory: GoogleLocalCategoryBody = {
+          localId: localId,
+          categoryId: categoryId
+        };
+        localCategories.push(localCategory);
+      });
+    });
+
+    this._createGooglePlaces(categories, localCategories, locations, accessibilities, locals);
+  }
+
+
+  private _createGooglePlaces(
+    categories: GoogleCategoryBody[],
+    localCategories: GoogleLocalCategoryBody[],
+    locations: GoogleLocationBody[],
+    accessibilities: GoogleAccessibilityBody[],
+    locals: GoogleLocalBody[]
+  ): void {
+    this._baseApiService.createGooglePlaces(
+      categories,
+      localCategories,
+      locations,
+      accessibilities,
+      locals
+    ).subscribe();
   }
 }

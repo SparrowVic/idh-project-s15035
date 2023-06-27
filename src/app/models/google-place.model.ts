@@ -1,5 +1,9 @@
 export interface GooglePlaceRequest {
-  addressComponents: any[],
+  addressComponents: {
+    long_name: string,
+    short_name: string,
+    types: string[]
+  }[],
   formattedAddress: string;
   name: string,
   placeId: string,
@@ -32,39 +36,71 @@ export interface GooglePlaceRequest {
   drivingAccess: boolean
 }
 
-export interface LocalRequest {
+export interface GoogleLocal {
   placeId: string,
   name: string,
   rating: number,
   reviewCount: number,
-  wheelchairAccessible: boolean
-
+  wheelchairAccessible: boolean,
+  publicTransport: boolean,
+  drivingAccess: boolean,
+  types: string[],
   //Address
   formattedAddress: string,
   latitude: number,
   longitude: number,
   //Like address components
-  postalCode: string, //google response key in types array: postal_code
-  country: string, //google response key in types array: country
-  city: string, //google response key in types array: locality
-  streetNumber: string, //google response key in types array: street_number
-  subpremise: string //google response key in types array: subpremise
+  postalCode?: string,
+  country?: string,
+  city?: string,
+  streetNumber?: string,
+  subpremise?: string
 }
 
-// export interface LocationRequest {
-//   formattedAddress: string,
-//   latitude: number,
-//   longitude: number,
-//   city: string,
-//   state: string,
-//   country: string,
-// }
+export interface GoogleLocalBody {
+  id: string,
+  placeId: string,
+  locationId: string,
+  accessibilityId: string,
+  name: string,
+  rating: number,
+  reviewCount: number,
+  wheelchairAccessible: boolean,
+  types: string[]
+}
 
-export interface CategoryRequest {
+export interface GoogleCategoryBody {
+  id: string,
   name: string
 }
 
-export interface AccessibilityRequest {
+export interface GoogleLocalCategoryBody {
+  localId: string,
+  categoryId: string
+}
+
+export interface GoogleLocationBody {
+  id: string,
+  formattedAddress: string,
+  latitude: number,
+  longitude: number,
+  postalCode: string,
+  country: string,
+  city: string,
+  streetNumber: string,
+  subpremise: string,
+}
+
+export interface GoogleAccessibilityBody {
+  id: string,
   publicTransport: boolean,
   drivingAccess: boolean,
+}
+
+export interface GoogleLocalApiRequest {
+  locals: GoogleLocalBody[],
+  categories: GoogleCategoryBody[],
+  locations: GoogleLocationBody[],
+  accessibilities: GoogleAccessibilityBody[],
+  localCategories: GoogleLocalCategoryBody[],
 }

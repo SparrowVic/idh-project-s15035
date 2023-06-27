@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { NearbySearchResults } from "../../dtos/google-maps/nearby-search.model";
-import { GooglePlaceRequest } from "../../models/google-place.model";
+import { GoogleLocal, GooglePlaceRequest } from "../../models/google-place.model";
 import { DetailsResult } from "../../dtos/google-maps/details.model";
 
 @Injectable({
@@ -10,6 +10,7 @@ export class GoogleDataService {
   private _googleNearbySearchResults: NearbySearchResults[] = [];
   private _googleDetailsResult: DetailsResult[] = [];
   private _googlePlacesRequest: GooglePlaceRequest[] = [];
+  private _googleLocalRequest: GoogleLocal[] = [];
 
   constructor() { }
 
@@ -27,5 +28,13 @@ export class GoogleDataService {
 
   get googlePlacesRequest(): GooglePlaceRequest[] {
     return this._googlePlacesRequest;
+  }
+
+  set googleLocalRequest(data: GoogleLocal[]) {
+    this._googleLocalRequest.push(...data);
+  }
+
+  get googleLocalRequest(): GoogleLocal[] {
+    return this._googleLocalRequest;
   }
 }
