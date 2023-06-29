@@ -47,7 +47,30 @@
     >
   </mat-form-field>
 
-  <button  mat-raised-button color="primary" (click)="startProcess()">Uruchom proces</button>
+  <button
+    [disabled]="true"
+    *ngIf="!processRunning; else processRunningBtn"
+    mat-raised-button color="primary"
+    (click)="startProcess()"
+  >
+    Uruchom proces
+  </button>
+  <ng-template #processRunningBtn>
+    <button  mat-stroked-button disabled>
+      <div class="inline-flex gap-4 align-middle items-center">
+        <div>
+          ETL process running
+        </div>
+        <mat-spinner [diameter]="20"></mat-spinner>
+      </div>
+    </button>
+  </ng-template>
 </form>
 
-<button mat-raised-button color="primary" (click)="getPlaceDetails()">GET PLACE DETAILS</button>
+
+
+
+
+
+
+

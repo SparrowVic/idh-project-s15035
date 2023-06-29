@@ -42,4 +42,56 @@ export class BaseApiService {
 
     return this._httpClient.post<string>(`${this.url}create-google-locals`, request);
   }
+
+  getAllData(): Observable<AllDataResponse> {
+    return this._httpClient.get<AllDataResponse>(`${this.url}all-data`)
+  }
+}
+
+export interface Accessibility {
+  id: string;
+  publicTransport: boolean;
+  drivingAccess: boolean;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+}
+
+export interface Local {
+  id: string;
+  placeId: string;
+  locationId: string;
+  accessibilityId: string;
+  name: string;
+  rating?: number;
+  reviewCount?: number;
+  wheelchairAccessible?: boolean;
+}
+
+export interface LocalCategory {
+  id: string;
+  localId: string;
+  categoryId: string;
+}
+
+export interface Location {
+  id: string;
+  formattedAddress: string;
+  latitude: number;
+  longitude: number;
+  postalCode: string;
+  country: string;
+  city: string;
+  streetNumber?: string;
+  subpremise?: string;
+}
+
+export interface AllDataResponse {
+  categories: Category[];
+  locations: Location[];
+  accessibilities: Accessibility[];
+  locals: Local[];
+  localCategories: LocalCategory[];
 }

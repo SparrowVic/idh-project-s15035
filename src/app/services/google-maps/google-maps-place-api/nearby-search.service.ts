@@ -13,8 +13,8 @@ import { GoogleDataService } from "../google-data.service";
 })
 export class GoogleNearbySearchService {
   private url = `${environment.proxyUrl}${environment.googleUrl}place/nearbysearch/json?`;
-  private _numOfRequestsForGetAllPlaces:number;
-  private _requestCounter = 0;
+  private _numOfRequestsForGetAllPlaces: number;
+  requestCounter = 0;
 
 
   constructor(
@@ -40,7 +40,7 @@ export class GoogleNearbySearchService {
       .pipe(
         tap((resp) => {
           this._googleDataService.googleNearbySearchResults = resp.results;
-          this._requestCounter++;
+          this.requestCounter++;
         }),
         switchMap((resp) => this._getAllPlacesWithNextPageToken(resp.next_page_token))
       )
@@ -57,11 +57,11 @@ export class GoogleNearbySearchService {
       .pipe(
         tap((resp) => {
           this._googleDataService.googleNearbySearchResults = resp.results;
-          this._requestCounter++;
+          this.requestCounter++;
         }),
         switchMap((resp) =>
           iif(() =>
-              (this._requestCounter < this._numOfRequestsForGetAllPlaces),
+              (this.requestCounter < this._numOfRequestsForGetAllPlaces),
             this._getAllPlacesWithNextPageToken(resp.next_page_token),
             of({} as NearbySearchResponse))
         )

@@ -1,0 +1,106 @@
+<div class="grid gap-4 w-full">
+  <div>
+    <button
+      mat-raised-button color="primary"
+      (click)="getAllData()"
+    >
+      Pobierz dane
+    </button>
+  </div>
+
+  <div *ngIf="allData" class="grid gap-4 w-full">
+    <div class="inline-flex w-full gap-4">
+      <div class="w-1/2">
+        <app-first-report [allData]="allData"></app-first-report>
+      </div>
+      <div class="w-1/2">
+        <div>
+          <h2>{{reportsInfo[0].header}}</h2>
+          <div>{{reportsInfo[0].description}}</div>
+        </div>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+
+    <div class="inline-flex w-full gap-4">
+      <div class="w-1/2">
+        <div>
+          <h2>{{reportsInfo[1].header}}</h2>
+          <div>{{reportsInfo[1].description}}</div>
+        </div>
+      </div>
+      <div class="w-1/2">
+        <app-second-report [allData]="allData"></app-second-report>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+
+    <div class="inline-flex w-full gap-4">
+      <div class="w-1/2">
+        <app-third-report [allData]="allData"></app-third-report>
+      </div>
+      <div class="w-1/2">
+        <div>
+          <h2>{{reportsInfo[2].header}}</h2>
+          <div>{{reportsInfo[2].description}}</div>
+        </div>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+
+<!--    <div class="inline-flex w-full gap-4">-->
+<!--      <div class="w-1/2">sfgdsfadsdsads</div>-->
+<!--      <div class="w-1/2">-->
+<!--        <app-fourth-report [allData]="allData"></app-fourth-report>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--    <mat-divider></mat-divider>-->
+
+    <div class="inline-flex w-full gap-4">
+      <div class="w-1/2">
+        <div>
+          <h2>{{reportsInfo[4].header}}</h2>
+          <div>{{reportsInfo[4].description}}</div>
+        </div>
+      </div>
+      <div class="w-1/2">
+        <app-fifth-report [allData]="allData"></app-fifth-report>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+
+<!--    <div class="inline-flex w-full gap-4">-->
+<!--      <div class="w-1/2">sfgdsfadsdsads</div>-->
+<!--      <div class="w-1/2">-->
+<!--        <app-sixth-report [allData]="allData"></app-sixth-report>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--    <mat-divider></mat-divider>-->
+
+    <div class="inline-flex w-full gap-4">
+      <div class="w-1/2">
+        <app-seventh-report [allData]="allData"></app-seventh-report>
+      </div>
+      <div class="w-1/2">
+        <div>
+          <h2>{{reportsInfo[6].header}}</h2>
+          <div>{{reportsInfo[6].description}}</div>
+        </div>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+
+    <div class="inline-flex w-full gap-4">
+      <div class="w-1/2">
+        <div>
+          <h2>{{reportsInfo[7].header}}</h2>
+          <div>{{reportsInfo[7].description}}</div>
+        </div>
+      </div>
+      <div class="w-1/2">
+        <app-eighth-report [allData]="allData"></app-eighth-report>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+  </div>
+</div>

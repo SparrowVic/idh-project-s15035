@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {MainPageEtlFormConfig} from "./enums/main-page-etl-form-config.enum";
 import {BaseService} from "../../../services/base.service";
@@ -9,7 +9,7 @@ import {
   GoogleDetailsService
 } from "../../../services/google-maps/google-maps-place-api/details.service";
 import { GoogleDataService } from "../../../services/google-maps/google-data.service";
-import { forkJoin, map, Observable, of, switchMap, tap } from "rxjs";
+import { forkJoin, map, Observable, of, Subject, switchMap, takeUntil, tap } from "rxjs";
 import {
   GoogleAccessibilityBody,
   GoogleCategoryBody,
@@ -25,12 +25,22 @@ import * as uuid from 'uuid';
   templateUrl: './main-page-etl-form.component.html',
   styleUrls: ['./main-page-etl-form.component.scss']
 })
-export class MainPageEtlFormComponent implements OnInit {
+export class MainPageEtlFormComponent implements OnInit, OnDestroy {
   form: FormGroup;
   formConfig = MainPageEtlFormConfig;
   data: string;
   counter: number = 1;
+  processRunning: boolean = false;
+  destroy$ = new Subject<void>();
 
+
+  //=============
+  categories: GoogleCategoryBody[] = [];
+  localCategories: GoogleLocalCategoryBody[] = [];
+  locations: GoogleLocationBody[] = [];
+  accessibilities: GoogleAccessibilityBody[] = [];
+  locals: GoogleLocalBody[] = [];
+  //===============
   constructor(
     private readonly _fb: FormBuilder,
     private readonly _baseService: BaseService,
@@ -40,9 +50,16 @@ export class MainPageEtlFormComponent implements OnInit {
     private readonly _baseApiService: BaseApiService) {
   }
 
+
   ngOnInit(): void {
     this._initForm();
   }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
 
   startProcess(): void {
     if (this.form.invalid) {
@@ -50,12 +67,15 @@ export class MainPageEtlFormComponent implements OnInit {
       return;
     }
 
+    this.form.disable();
+    this.processRunning = true;
     const values = this.form.value;
     this._baseService.googleMapsAPIKey = values[this.formConfig.googleMapsAPIKey]
     this._baseService.drivingAccessibilityRadius = values[this.formConfig.drivingAccessibilityRadius]
     this._baseService.publicTransportAccessibilityRadius = values[this.formConfig.publicTransportAccessibilityRadius]
 
     this._googleNearbySearchService.getAllPlaces(values[this.formConfig.pagesNumber])
+     .pipe(takeUntil(this.destroy$))
      .subscribe(() => this.getPlaceDetails())
   }
 
@@ -74,6 +94,7 @@ export class MainPageEtlFormComponent implements OnInit {
     this._googleDataService.googleNearbySearchResults.forEach(place => {
       placeDetailsRequests$.push(this._googleDetailsService.getPlaceDetails(place.place_id)
         .pipe(
+          takeUntil(this.destroy$),
           switchMap(placeDetails => {
             return forkJoin({
               placeDetails: of(placeDetails),
@@ -97,6 +118,7 @@ export class MainPageEtlFormComponent implements OnInit {
     })
 
     forkJoin(placeDetailsRequests$)
+      .pipe(takeUntil(this.destroy$))
       .subscribe(resp => {
         this._googleDataService.googlePlacesRequest = resp;
         this.mapGoolePlacesToPGoogleLocalRequest();
@@ -134,11 +156,11 @@ export class MainPageEtlFormComponent implements OnInit {
   }
 
   mapGoogleLocalsToApiRequestBodies(): void {
-    const categories: GoogleCategoryBody[] = [];
-    const localCategories: GoogleLocalCategoryBody[] = [];
-    const locations: GoogleLocationBody[] = [];
-    const accessibilities: GoogleAccessibilityBody[] = [];
-    const locals: GoogleLocalBody[] = [];
+    // const categories: GoogleCategoryBody[] = [];
+    // const localCategories: GoogleLocalCategoryBody[] = [];
+    // const locations: GoogleLocationBody[] = [];
+    // const accessibilities: GoogleAccessibilityBody[] = [];
+    // const locals: GoogleLocalBody[] = [];
     const existingCategoryNames: Set<string> = new Set();
     const uuid = require('uuid');
     const categoryIdsByName: Map<string, string> = new Map();
@@ -153,7 +175,7 @@ export class MainPageEtlFormComponent implements OnInit {
         publicTransport: googleLocal.publicTransport,
         drivingAccess: googleLocal.drivingAccess
       };
-      accessibilities.push(accessibility);
+      this.accessibilities.push(accessibility);
 
       const location: GoogleLocationBody = {
         id: locationId,
@@ -166,7 +188,7 @@ export class MainPageEtlFormComponent implements OnInit {
         streetNumber: googleLocal.streetNumber || '',
         subpremise: googleLocal.subpremise || ''
       };
-      locations.push(location);
+      this.locations.push(location);
 
       const local: GoogleLocalBody = {
         id: localId,
@@ -179,7 +201,7 @@ export class MainPageEtlFormComponent implements OnInit {
         reviewCount: googleLocal.reviewCount,
         wheelchairAccessible: googleLocal.wheelchairAccessible
       };
-      locals.push(local);
+      this.locals.push(local);
 
       googleLocal.types.forEach(type => {
         let categoryId: string;
@@ -192,7 +214,7 @@ export class MainPageEtlFormComponent implements OnInit {
             id: categoryId,
             name: type
           };
-          categories.push(category);
+          this.categories.push(category);
           categoryIdsByName.set(type, categoryId);
         }
 
@@ -200,11 +222,17 @@ export class MainPageEtlFormComponent implements OnInit {
           localId: localId,
           categoryId: categoryId
         };
-        localCategories.push(localCategory);
+        this.localCategories.push(localCategory);
       });
     });
 
-    this._createGooglePlaces(categories, localCategories, locations, accessibilities, locals);
+    this._createGooglePlaces(
+      this.categories,
+      this.localCategories,
+      this.locations,
+      this.accessibilities,
+      this.locals
+    );
   }
 
 
@@ -221,6 +249,29 @@ export class MainPageEtlFormComponent implements OnInit {
       locations,
       accessibilities,
       locals
-    ).subscribe();
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+      this.processRunning = false;
+      this.form.enable();
+      this._googleNearbySearchService.requestCounter = 0;
+    });
+  }
+
+  private saveDataToFile(data: any[]): void {
+    const fileContent = JSON.stringify(data);
+    const filename = 'dane.txt'; // Nazwa pliku do zapisu
+    const fileLocation = 'D:/PJATK/mgr/idh-dane/'; // Ścieżka do folderu, gdzie chcesz zapisać plik
+
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(fileContent));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
   }
 }
